@@ -1,0 +1,27 @@
+GET https://backend-long-tree-8749.fly.dev/api/persons
+
+###
+
+GET https://backend-long-tree-8749.fly.dev/api/persons/1
+
+###
+
+GET https://backend-long-tree-8749.fly.dev/api/persons/12345
+
+###
+
+DELETE https://backend-long-tree-8749.fly.dev/api/persons/12345
+
+###
+
+DELETE https://backend-long-tree-8749.fly.dev/api/persons/2
+
+###
+
+POST https://backend-long-tree-8749.fly.dev/api/persons
+Content-Type: application/json
+
+{
+    "name": "John Doe",
+    "number": "050-123456"
+}

@@ -2,7 +2,10 @@ const express = require('express')
 const app = express()
 const morgan = require('morgan')
 
+// BOOKMARK: https://fullstackopen.com/en/part3/deploying_app_to_internet#:~:text=3.11%20Full%20Stack%20Phonebook
+
 app.use(express.json())
+app.use(express.static('dist'))
 
 morgan.token('body', function (req, res) {
   return JSON.stringify(req['body'])
