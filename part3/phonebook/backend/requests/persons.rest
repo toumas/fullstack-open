@@ -6,11 +6,15 @@ GET http://localhost:3001/api/persons/1
 
 ###
 
-GET http://localhost:3001/api/persons/12345
+GET http://localhost:3001/api/persons/69edb10706075eb87427ba0e
 
 ###
 
-DELETE http://localhost:3001/api/persons/12345
+GET http://localhost:3001/api/persons/507f1f77bcf86cd799439011
+
+###
+
+DELETE http://localhost:3001/api/persons/507f1f77bcf86cd799439011
 
 ###
 
@@ -24,4 +28,13 @@ Content-Type: application/json
 {
     "name": "John Doe",
     "number": "050-123456"
+}
+
+###
+
+PUT http://localhost:3001/api/persons/69edc044857096746f83aa91
+Content-Type: application/json
+
+{
+    "number": "baz"
 }

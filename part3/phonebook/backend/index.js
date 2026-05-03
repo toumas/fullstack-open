@@ -1,8 +1,10 @@
-const express = require('express')
-const app = express()
-const morgan = require('morgan')
+import {config} from 'dotenv'
+import express from 'express'
+import morgan from 'morgan'
+import Person from './models/person.js'
 
-// BOOKMARK: https://fullstackopen.com/en/part3/deploying_app_to_internet#:~:text=3.11%20Full%20Stack%20Phonebook
+config()
+const app = express()
 
 app.use(express.json())
 app.use(express.static('dist'))
@@ -13,76 +15,67 @@ morgan.token('body', function (req, res) {
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
-let data = [
-  {
-    "id": "1",
-    "name": "Arto Hellas",
-    "number": "040-123456"
-  },
-  {
-    "id": "2",
-    "name": "Ada Lovelace",
-    "number": "39-44-5323523"
-  },
-  {
-    "id": "3",
-    "name": "Dan Abramov",
-    "number": "12-43-234345"
-  },
-  {
-    "id": "4",
-    "name": "Mary Poppendieck",
-    "number": "39-23-6423122"
-  }
-]
-
-app.get('/info', (request, response) => {
+app.get('/info', async (request, response) => {
+  const count = (await Person.find({})).length
   response.send(`
     <main>
-      <p>Phonebook has info for ${data.length} people</p>
+      <p>Phonebook has info for ${count} people</p>
       <p>${new Date()}</p>
     </main>`)
 })
 
-app.get('/api/persons', (request, response) => {
-  response.json(data)
+app.get('/api/persons', async (request, response) => {
+  const people = await Person.find({})
+  response.json(people)
 })
 
-app.post('/api/persons', (request, response) => {
-  const id = Math.random().toString().split('.')[1]
+app.post('/api/persons', async (request, response) => {
   const person = request.body
   if (!person.name || !person.number) {
     response.status(400).json({ error: 'name and number is required' })
     return
   }
-  if (data.find(p => p.name === person.name)) {
-    response.status(400).json({ error: 'name must be unique' })
-    return
-  }
-  const newPerson = { ...person, id }
-  data = data.concat(newPerson)
+  const newPerson = await Person.create(person)
   response.json(newPerson)
 })
 
-app.get('/api/persons/:id', (request, response) => {
+app.put('/api/persons/:id', async (request, response, next) => {
   const id = request.params.id
-  const person = data.find(person => person.id === id)
-  if (person === undefined) {
-    response.status(404).end()
+  const numberObject = request.body
+  if (!numberObject.number) {
+    response.status(400).json({ error: 'number is required' })
     return
   }
-  response.json(person)
+  const updatedPerson = await Person.findByIdAndUpdate(id, numberObject, {returnDocument: 'after'})
+  response.json(updatedPerson)
 })
 
-app.delete('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', async (request, response, next) => {
   const id = request.params.id
-  const deletedPerson = data.find(person => person.id === id)
-  if (deletedPerson === undefined) {
-    response.status(404).end()
-    return
+  try {
+    const person = await Person.findById(id)
+    if (person === null) {
+      response.status(404).end()
+      return
+    }
+    response.json(person)
+  } catch (error) {
+    next(error)
   }
-  data = data.filter(person => person.id !== id)
-  response.status(204).end()
+})
+
+app.delete('/api/persons/:id', async (request, response, next) => {
+  const id = request.params.id
+  try {
+    const deletedPerson = await Person.findByIdAndDelete(id)
+    if (deletedPerson === null) {
+      response.status(404).end()
+      return
+    }
+    response.status(204).end()
+  } catch (error) {
+    next(error) 
+  }
 })
 
 const unknownEndpoint = (request, response) => {
@@ -91,7 +84,19 @@ const unknownEndpoint = (request, response) => {
 
 app.use(unknownEndpoint)
 
-const PORT = 3001
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } 
+
+  next(error)
+}
+
+app.use(errorHandler)
+
+const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
