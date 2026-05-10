@@ -19,11 +19,18 @@ const App = () => {
     }
     const person = findPerson(persons, newName) ?? false
     if (!person) {
-      const newPerson = await phonebook.create({ name: newName, number: phoneNumber })
-      setPersons(persons.concat(newPerson))
-      setNewName('')
-      setPhoneNumber('')
-      handleNotificationText({ message: `Added ${newName}` })
+      try {
+        const newPerson = await phonebook.create({ name: newName, number: phoneNumber })
+        setPersons(persons.concat(newPerson))
+        setNewName('')
+        setPhoneNumber('')
+        handleNotificationText({ message: `Added ${newName}` })
+      } catch (error) {
+        handleNotificationText({
+          type: 'error',
+          message: error.response.data.error
+        })
+      }
     }
     if (
       person &&
@@ -35,9 +42,10 @@ const App = () => {
         await phonebook.update(person.id, { name: newName, number: phoneNumber })
         setPersons(await phonebook.getAll())
         handleNotificationText({ message: `Updated ${newName}` })
-      } catch {
+      } catch (error) {
+        console.log(error)
         handleNotificationText({
-          message: `Information of ${newName} has already been removed from server`,
+          message: error.response.data.error,
           type: 'error',
         })
       }

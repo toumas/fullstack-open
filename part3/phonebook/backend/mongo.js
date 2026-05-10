@@ -1,4 +1,3 @@
-// BOOKMARK: https://fullstackopen.com/en/part3/saving_data_to_mongo_db#exercises-3-13-3-14
 import mongoose from 'mongoose'
 
 if (process.argv.length < 3) {

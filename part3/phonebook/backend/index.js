@@ -1,4 +1,4 @@
-import {config} from 'dotenv'
+import { config } from 'dotenv'
 import express from 'express'
 import morgan from 'morgan'
 import Person from './models/person.js'
@@ -13,7 +13,9 @@ morgan.token('body', function (req, res) {
   return JSON.stringify(req['body'])
 })
 
-app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
+app.use(
+  morgan(':method :url :status :res[content-length] - :response-time ms :body'),
+)
 
 app.get('/info', async (request, response) => {
   const count = (await Person.find({})).length
@@ -29,14 +31,18 @@ app.get('/api/persons', async (request, response) => {
   response.json(people)
 })
 
-app.post('/api/persons', async (request, response) => {
-  const person = request.body
-  if (!person.name || !person.number) {
-    response.status(400).json({ error: 'name and number is required' })
-    return
+app.post('/api/persons', async (request, response, next) => {
+  try {
+    const person = request.body
+    if (!person.name || !person.number) {
+      response.status(400).json({ error: 'name and number is required' })
+      return
+    }
+    const newPerson = await Person.create(person)
+    response.json(newPerson)
+  } catch (error) {
+    next(error)
   }
-  const newPerson = await Person.create(person)
-  response.json(newPerson)
 })
 
 app.put('/api/persons/:id', async (request, response, next) => {
@@ -46,8 +52,19 @@ app.put('/api/persons/:id', async (request, response, next) => {
     response.status(400).json({ error: 'number is required' })
     return
   }
-  const updatedPerson = await Person.findByIdAndUpdate(id, numberObject, {returnDocument: 'after'})
-  response.json(updatedPerson)
+  try {
+    const updatedPerson = await Person.findByIdAndUpdate(id, numberObject, {
+      returnDocument: 'after',
+      runValidators: true,
+      upsert: false,
+    })
+    if (updatedPerson === null) {
+      return response.status(404).json({ error: 'Updatable person was not found'})
+    }
+    response.json(updatedPerson)
+  } catch (error) {
+    next(error)
+  }
 })
 
 app.get('/api/persons/:id', async (request, response, next) => {
@@ -74,7 +91,7 @@ app.delete('/api/persons/:id', async (request, response, next) => {
     }
     response.status(204).end()
   } catch (error) {
-    next(error) 
+    next(error)
   }
 })
 
@@ -89,7 +106,10 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
-  } 
+  }
+  if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
+  }
 
   next(error)
 }

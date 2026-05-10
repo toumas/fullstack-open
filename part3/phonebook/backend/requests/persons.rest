@@ -27,6 +27,56 @@ Content-Type: application/json
 
 {
     "name": "John Doe",
+    "number": "09-1234556"
+}
+
+###
+
+POST http://localhost:3001/api/persons
+Content-Type: application/json
+
+{
+    "name": "John Doe",
+    "number": "040-22334455"
+}
+
+###
+
+POST http://localhost:3001/api/persons
+Content-Type: application/json
+
+{
+    "name": "John Doe",
+    "number": "1234556"
+}
+
+###
+
+POST http://localhost:3001/api/persons
+Content-Type: application/json
+
+{
+    "name": "John Doe",
+    "number": "1-22334455"
+}
+
+###
+
+POST http://localhost:3001/api/persons
+Content-Type: application/json
+
+{
+    "name": "John Doe",
+    "number": "10-22-334455"
+}
+
+###
+
+POST http://localhost:3001/api/persons
+Content-Type: application/json
+
+{
+    "name": "Jo",
     "number": "050-123456"
 }
 
@@ -37,4 +87,13 @@ Content-Type: application/json
 
 {
     "number": "baz"
+}
+
+###
+
+PUT http://localhost:3001/api/persons/69edc044857096746f83aa91
+Content-Type: application/json
+
+{
+    "number": "02-02020202"
 }
